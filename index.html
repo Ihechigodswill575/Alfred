@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nexora — Movies, on demand</title>
+<meta name="description" content="Nexora is a movie streaming platform. Search, browse and watch thousands of titles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<header class="site-header" id="siteHeader">
+  <div class="header-inner">
+    <a href="#/home" class="logo" data-nav="home">
+      <span class="logo-mark">N</span>
+      <span class="logo-word">NEXORA</span>
+    </a>
+
+    <nav class="main-nav">
+      <a href="#/home" data-nav="home" class="nav-link">Home</a>
+      <a href="#/browse" data-nav="browse" class="nav-link">Browse</a>
+      <a href="#/my-list" data-nav="my-list" class="nav-link">My List</a>
+      <a href="#/admin" data-nav="admin" class="nav-link admin-only hidden">Admin</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="search-box" id="searchBox">
+        <svg viewBox="0 0 24 24" class="icon-search"><path d="M21 21l-4.35-4.35m1.35-5.15a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        <input type="text" id="searchInput" placeholder="Search movies…" autocomplete="off">
+      </div>
+      <button class="icon-btn" id="mobileSearchBtn" aria-label="Search">
+        <svg viewBox="0 0 24 24"><path d="M21 21l-4.35-4.35m1.35-5.15a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="auth-area" id="authArea">
+        <button class="btn btn-ghost" id="signInBtn">Sign in</button>
+      </div>
+    </div>
+  </div>
+  <div class="search-drawer" id="searchDrawer">
+    <input type="text" id="searchInputMobile" placeholder="Search movies…" autocomplete="off">
+  </div>
+</header>
+
+<!-- ===== SEARCH RESULTS OVERLAY ===== -->
+<section class="search-results-panel hidden" id="searchResultsPanel">
+  <div class="container">
+    <div class="panel-head">
+      <h2>Results for “<span id="searchQueryLabel"></span>”</h2>
+      <button class="icon-btn" id="closeSearchResults">✕</button>
+    </div>
+    <div class="grid poster-grid" id="searchResultsGrid"></div>
+    <p class="empty-msg hidden" id="searchEmptyMsg">No titles matched. Try another search.</p>
+  </div>
+</section>
+
+<!-- ===== MAIN VIEWS ===== -->
+<main id="app">
+
+  <!-- ---- HOME VIEW ---- -->
+  <section class="view" id="view-home">
+    <div class="hero" id="heroSection">
+      <div class="hero-filmstrip" aria-hidden="true"></div>
+      <div class="hero-backdrop" id="heroBackdrop"></div>
+      <div class="hero-fade"></div>
+      <div class="hero-content container">
+        <p class="eyebrow" id="heroEyebrow">Now Screening</p>
+        <h1 class="hero-title" id="heroTitle">Loading…</h1>
+        <p class="hero-meta" id="heroMeta"></p>
+        <p class="hero-overview" id="heroOverview"></p>
+        <div class="hero-actions">
+          <button class="ticket-btn" id="heroWatchBtn">
+            <span class="ticket-perf"></span>
+            <span class="ticket-label">▶ Watch now</span>
+          </button>
+          <button class="btn btn-outline" id="heroInfoBtn">More info</button>
+          <button class="btn btn-icon-only" id="heroListBtn" title="Add to My List">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="rows-wrap container">
+      <div class="rail" data-rail="trending">
+        <div class="rail-head"><h2>Trending this week</h2></div>
+        <div class="rail-track" data-track="trending"></div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+
+      <div class="rail" data-rail="top_rated">
+        <div class="rail-head"><h2>Top rated</h2></div>
+        <div class="rail-track" data-track="top_rated"></div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+
+      <div class="rail" data-rail="action">
+        <div class="rail-head"><h2>Action &amp; Adventure</h2></div>
+        <div class="rail-track" data-track="action"></div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+
+      <div class="rail" data-rail="comedy">
+        <div class="rail-head"><h2>Comedy</h2></div>
+        <div class="rail-track" data-track="comedy"></div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+
+      <div class="rail" data-rail="horror">
+        <div class="rail-head"><h2>Horror</h2></div>
+        <div class="rail-track" data-track="horror"></div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+
+      <div class="rail" data-rail="animation">
+        <div class="rail-head"><h2>Animation</h2></div>
+        <div class="rail-track" data-track="animation"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- BROWSE VIEW ---- -->
+  <section class="view hidden" id="view-browse">
+    <div class="container browse-head">
+      <h1>Browse</h1>
+      <div class="filter-bar">
+        <select id="genreFilter">
+          <option value="">All genres</option>
+        </select>
+        <select id="sortFilter">
+          <option value="popularity.desc">Most popular</option>
+          <option value="vote_average.desc">Top rated</option>
+          <option value="primary_release_date.desc">Newest</option>
+        </select>
+      </div>
+    </div>
+    <div class="container">
+      <div class="grid poster-grid" id="browseGrid"></div>
+      <div class="load-more-wrap">
+        <button class="btn btn-outline" id="loadMoreBtn">Load more</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- MY LIST VIEW ---- -->
+  <section class="view hidden" id="view-my-list">
+    <div class="container">
+      <h1>My List</h1>
+      <p class="muted" id="myListSignedOutMsg">Sign in to save titles to your list.</p>
+      <div class="grid poster-grid" id="myListGrid"></div>
+      <p class="empty-msg hidden" id="myListEmptyMsg">Your list is empty. Tap the + on any title to add it.</p>
+    </div>
+  </section>
+
+  <!-- ---- MOVIE DETAIL VIEW ---- -->
+  <section class="view hidden" id="view-detail">
+    <div class="detail-backdrop" id="detailBackdrop"></div>
+    <div class="detail-fade"></div>
+    <div class="container detail-content">
+      <button class="btn-back" id="detailBackBtn">← Back</button>
+      <div class="detail-grid">
+        <img class="detail-poster" id="detailPoster" alt="">
+        <div class="detail-info">
+          <h1 id="detailTitle"></h1>
+          <div class="detail-chips" id="detailChips"></div>
+          <p class="detail-overview" id="detailOverview"></p>
+          <div class="detail-actions">
+            <button class="ticket-btn" id="detailWatchBtn">
+              <span class="ticket-perf"></span>
+              <span class="ticket-label">▶ Watch now</span>
+            </button>
+            <button class="btn btn-outline" id="detailListBtn">+ My List</button>
+          </div>
+          <div class="detail-cast" id="detailCast"></div>
+        </div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+      <div class="rail">
+        <div class="rail-head"><h2>More like this</h2></div>
+        <div class="rail-track" id="similarTrack"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---- ADMIN VIEW ---- -->
+  <section class="view hidden" id="view-admin">
+    <div class="container">
+      <h1>Admin dashboard</h1>
+      <p class="muted">Signed in as the site administrator.</p>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <h3>Total users</h3>
+          <p class="admin-stat" id="statUsers">—</p>
+        </div>
+        <div class="admin-card">
+          <h3>Watchlist entries</h3>
+          <p class="admin-stat" id="statWatchlist">—</p>
+        </div>
+        <div class="admin-card">
+          <h3>Signed-in today</h3>
+          <p class="admin-stat" id="statToday">—</p>
+        </div>
+      </div>
+      <div class="perf-divider" aria-hidden="true"></div>
+      <h2>Recent users</h2>
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="adminUserTable">
+          <thead><tr><th>Email</th><th>Joined</th><th>List size</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== PLAYER MODAL ===== -->
+<div class="player-modal hidden" id="playerModal">
+  <div class="player-modal-inner">
+    <button class="player-close" id="playerCloseBtn">✕</button>
+    <div class="player-frame-wrap">
+      <iframe id="playerFrame" src="" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AUTH MODAL ===== -->
+<div class="auth-modal hidden" id="authModal">
+  <div class="auth-modal-inner">
+    <button class="player-close" id="authCloseBtn">✕</button>
+    <div class="auth-tabs">
+      <button class="auth-tab active" data-tab="signin">Sign in</button>
+      <button class="auth-tab" data-tab="signup">Create account</button>
+    </div>
+    <form id="authForm" class="auth-form">
+      <label>Email
+        <input type="email" id="authEmail" required autocomplete="email">
+      </label>
+      <label>Password
+        <input type="password" id="authPassword" required autocomplete="current-password" minlength="6">
+      </label>
+      <p class="auth-error hidden" id="authError"></p>
+      <button type="submit" class="btn ticket-btn" id="authSubmitBtn">
+        <span class="ticket-perf"></span>
+        <span class="ticket-label">Sign in</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ===== TOAST ===== -->
+<div class="toast hidden" id="toast"></div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script src="js/firebase-config.js"></script>
+<script src="js/api.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
