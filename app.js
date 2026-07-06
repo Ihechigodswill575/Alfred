@@ -631,6 +631,16 @@ window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
   router();
 
+  // Ad warning banner — show once per browser unless dismissed
+  const adWarning = $("#adWarning");
+  if (!localStorage.getItem("nexora_ad_warning_dismissed")) {
+    adWarning.classList.remove("hidden");
+  }
+  $("#adWarningClose").addEventListener("click", () => {
+    adWarning.classList.add("hidden");
+    localStorage.setItem("nexora_ad_warning_dismissed", "1");
+  });
+
   $("#searchBtn").addEventListener("click", openSearch);
   $("#bnavSearch").addEventListener("click", (e) => { e.preventDefault(); openSearch(); });
   $("#closeSearchBtn").addEventListener("click", closeSearch);
