@@ -394,6 +394,27 @@ h1, h2, h3 { font-family: var(--font-display); letter-spacing: 0.01em; font-weig
 .source-btn.active { background: var(--gold); border-color: var(--gold); color: var(--ink); }
 .player-frame-wrap { flex: 1; position: relative; background: #000; }
 .player-frame-wrap iframe { width: 100%; height: 100%; border: none; }
+.player-protection-note {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  background: rgba(5,5,7,0.82);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 1;
+  animation: fadeNote 6s ease forwards;
+}
+@keyframes fadeNote {
+  0%, 70% { opacity: 1; }
+  100% { opacity: 0; }
+}
 .player-loading {
   position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 14px; background: #000; color: var(--text-muted); font-size: 13px;
