@@ -112,6 +112,71 @@ function buildContinueCard(entry) {
   return card;
 }
 
+function buildRecCard(item, type) {
+  const title = item.title || item.name;
+  const date = item.release_date || item.first_air_date;
+  const card = document.createElement("div");
+  card.className = "rec-card";
+  card.dataset.id = item.id;
+  card.dataset.type = type;
+
+  const listKey = `${type}_${item.id}`;
+  const inList = myListIds.has(listKey);
+  const overview = (item.overview || "").slice(0, 90);
+
+  card.innerHTML = `
+    <div class="rec-poster-wrap">
+      ${
+        item.poster_path
+          ? `<img loading="lazy" src="${NexoraAPI.imgUrl(item.poster_path, "w342")}" alt="${escapeHtml(title)}">`
+          : `<div class="poster-placeholder">${escapeHtml(title || "")}</div>`
+      }
+      <button class="rec-play" title="Play">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+      </button>
+    </div>
+    <div class="rec-info">
+      <div class="rec-info-top">
+        <p class="rec-title">${escapeHtml(title)}</p>
+        <button class="rec-add ${inList ? "in-list" : ""}" title="My List">${inList ? "✓" : "+"}</button>
+      </div>
+      <p class="rec-meta">${yearOf(date)} · ★ ${ratingBadge(item.vote_average)} · ${type === "tv" ? "TV" : "Movie"}</p>
+      ${overview ? `<p class="rec-overview">${escapeHtml(overview)}${item.overview && item.overview.length > 90 ? "…" : ""}</p>` : ""}
+    </div>
+  `;
+
+  card.querySelector(".rec-play").addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (type === "movie") openPlayer("movie", item.id, title);
+    else navigateTo(`#/tv/${item.id}`);
+  });
+  card.querySelector(".rec-add").addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleMyList(item, type, card.querySelector(".rec-add"));
+  });
+  card.addEventListener("click", () => navigateTo(`#/${type}/${item.id}`));
+
+  return card;
+}
+
+async function renderRecs(gridSelector, fetchPromise, type) {
+  const grid = document.querySelector(gridSelector);
+  if (!grid) return;
+  grid.innerHTML = `<div class="rec-skeleton"></div>`.repeat(6);
+  try {
+    const data = await fetchPromise;
+    const results = (data.results || []).filter((m) => m.poster_path).slice(0, 12);
+    grid.innerHTML = "";
+    if (results.length === 0) {
+      grid.innerHTML = `<p class="rail-error">No recommendations found for this title.</p>`;
+      return;
+    }
+    results.forEach((item) => grid.appendChild(buildRecCard(item, type)));
+  } catch {
+    grid.innerHTML = `<p class="rail-error">Couldn't load recommendations.</p>`;
+  }
+}
+
 // ---------------------------------------------------------------
 // Rail rendering
 // ---------------------------------------------------------------
@@ -291,14 +356,14 @@ async function loadDetail(type, id) {
 
     if (type === "movie") {
       $("#detailWatchBtn").onclick = () => openPlayer("movie", id, title);
-      renderRail("#similarTrack", NexoraAPI.similarMovies(id), "movie");
+      renderRecs("#similarTrack", NexoraAPI.similarMovies(id), "movie");
     } else {
       await loadSeasons(item);
       $("#detailWatchBtn").onclick = () => {
         const firstEp = currentSeasonEpisodes[0];
         if (firstEp) openPlayer("tv", id, title, $("#seasonSelect").value, firstEp.episode_number);
       };
-      renderRail("#similarTrack", NexoraAPI.similarTv(id), "tv");
+      renderRecs("#similarTrack", NexoraAPI.similarTv(id), "tv");
     }
   } catch (err) {
     view.innerHTML = `<div class="container" style="padding-top:100px;"><p class="empty-msg">Couldn't load this title.</p></div>`;
@@ -568,6 +633,21 @@ function setAuthMode(mode) {
   $all(".auth-tab").forEach((t) => t.classList.toggle("active", t.dataset.tab === mode));
   $("#authSubmitLabel").textContent = mode === "signin" ? "Sign in" : "Create account";
 }
+async function handleGoogleSignIn() {
+  const errorEl = $("#authError");
+  errorEl.classList.add("hidden");
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+    closeAuthModal();
+    showToast("Welcome to Nexora!");
+  } catch (err) {
+    if (err.code === "auth/popup-closed-by-user") return;
+    errorEl.textContent = friendlyAuthError(err.code);
+    errorEl.classList.remove("hidden");
+  }
+}
+
 async function handleAuthSubmit(e) {
   e.preventDefault();
   const email = $("#authEmail").value.trim();
@@ -592,6 +672,8 @@ function friendlyAuthError(code) {
     "auth/email-already-in-use": "An account already exists with that email.",
     "auth/weak-password": "Password should be at least 6 characters.",
     "auth/invalid-credential": "Incorrect email or password.",
+    "auth/popup-blocked": "Your browser blocked the sign-in popup. Please allow popups and try again.",
+    "auth/unauthorized-domain": "This domain isn't authorized for Google sign-in yet — add it in Firebase Console → Authentication → Settings → Authorized domains.",
   };
   return map[code] || "Something went wrong. Please try again.";
 }
@@ -666,6 +748,7 @@ window.addEventListener("DOMContentLoaded", () => {
   $("#authModal").addEventListener("click", (e) => { if (e.target.id === "authModal") closeAuthModal(); });
   $all(".auth-tab").forEach((tab) => tab.addEventListener("click", () => setAuthMode(tab.dataset.tab)));
   $("#authForm").addEventListener("submit", handleAuthSubmit);
+  $("#googleSignInBtn").addEventListener("click", handleGoogleSignIn);
 
   window.addEventListener("scroll", () => {
     $("#siteHeader").classList.toggle("scrolled", window.scrollY > 20);
