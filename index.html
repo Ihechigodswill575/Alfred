@@ -276,7 +276,15 @@
       <div class="spinner"></div>
       <p>Loading stream…</p>
     </div>
-    <iframe id="playerFrame" src="" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+    <iframe
+      id="playerFrame"
+      src=""
+      allowfullscreen
+      allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock"
+      referrerpolicy="no-referrer"
+    ></iframe>
+    <p class="player-protection-note">🛡 Pop-up &amp; redirect blocking active — in-player banner ads may still appear.</p>
   </div>
 </div>
 
