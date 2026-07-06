@@ -59,45 +59,49 @@ async function tmdbFetch(path) {
 }
 
 // ---- Player sources (movie + tv) -------------------------------------------
+// 伺 = "server" (short for 伺服器) — used as a prefix on every source label
+// below, per site branding. Four sources, pulled from three different
+// embed networks so a single provider going down doesn't take out playback.
 // Documentation:
+// https://vidlink.pro
+// https://vidsrc.cc
 // https://www.videasy.to/docs
-// https://vsembed.su/api/
-// https://www.vidking.net/#documentation
+// https://multiembed.mov
 const PLAYER_SOURCES = [
   {
-    id: "vidking",
-    label: "Vidking",
-    colorParam: "color",
-    params: { autoPlay: "true" },
-    movieUrl: (id) => `https://www.vidking.net/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://www.vidking.net/embed/tv/${id}/${s}/${e}`,
-  },
-  {
-    id: "videasy",
-    label: "Videasy",
-    colorParam: "color",
-    params: { overlay: "true" },
-    movieUrl: (id) => `https://player.videasy.to/movie/${id}`,
-    tvUrl: (id, s, e) => `https://player.videasy.to/tv/${id}/${s}/${e}`,
+    id: "vidlink",
+    label: "伺 Prime",
+    note: "Recommended",
+    movieUrl: (id, accentColor) =>
+      `https://vidlink.pro/movie/${id}?player=jw&primaryColor=${accentColor}&secondaryColor=${accentColor}&iconColor=${accentColor}&autoplay=false`,
+    tvUrl: (id, s, e, accentColor) =>
+      `https://vidlink.pro/tv/${id}/${s}/${e}?player=jw&primaryColor=${accentColor}&secondaryColor=${accentColor}&iconColor=${accentColor}&autoplay=false`,
   },
   {
     id: "vidsrc",
-    label: "VidSrc",
-    colorParam: null,
-    params: {},
-    movieUrl: (id) => `https://vsembed.su/embed/movie/${id}`,
-    tvUrl: (id, s, e) => `https://vsembed.su/embed/tv/${id}/${s}/${e}`,
+    label: "伺 Nova",
+    movieUrl: (id) => `https://vidsrc.cc/v3/embed/movie/${id}?autoPlay=false`,
+    tvUrl: (id, s, e) => `https://vidsrc.cc/v3/embed/tv/${id}/${s}/${e}?autoPlay=false`,
+  },
+  {
+    id: "videasy",
+    label: "伺 Turbo",
+    movieUrl: (id, accentColor) => `https://player.videasy.to/movie/${id}?overlay=true&color=${accentColor}`,
+    tvUrl: (id, s, e, accentColor) => `https://player.videasy.to/tv/${id}/${s}/${e}?overlay=true&color=${accentColor}`,
+  },
+  {
+    id: "multiembed",
+    label: "伺 Echo",
+    movieUrl: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1`,
+    tvUrl: (id, s, e) => `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`,
   },
 ];
-const DEFAULT_SOURCE = "vidking";
+const DEFAULT_SOURCE = "vidlink";
 
 function getSourceUrl(sourceId, type, id, season, episode, accentColor = "c9a24b") {
   const src = PLAYER_SOURCES.find((s) => s.id === sourceId) || PLAYER_SOURCES[0];
-  const baseUrl = type === "tv" ? src.tvUrl(id, season, episode) : src.movieUrl(id);
-  const url = new URL(baseUrl);
-  Object.entries(src.params).forEach(([k, v]) => url.searchParams.set(k, v));
-  if (src.colorParam) url.searchParams.set(src.colorParam, accentColor.replace(/^#/, ""));
-  return url.toString();
+  const color = accentColor.replace(/^#/, "");
+  return type === "tv" ? src.tvUrl(id, season, episode, color) : src.movieUrl(id, color);
 }
 
 // ---- Genre maps -------------------------------------------------------------
